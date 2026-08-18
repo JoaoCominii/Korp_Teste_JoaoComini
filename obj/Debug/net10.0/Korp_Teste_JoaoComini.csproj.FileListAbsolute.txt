@@ -1,0 +1,15 @@
+C:\Users\jujuc\Korp_Teste_JoaoComini\bin\Debug\net10.0\Korp_Teste_JoaoComini.exe
+C:\Users\jujuc\Korp_Teste_JoaoComini\bin\Debug\net10.0\Korp_Teste_JoaoComini.deps.json
+C:\Users\jujuc\Korp_Teste_JoaoComini\bin\Debug\net10.0\Korp_Teste_JoaoComini.runtimeconfig.json
+C:\Users\jujuc\Korp_Teste_JoaoComini\bin\Debug\net10.0\Korp_Teste_JoaoComini.dll
+C:\Users\jujuc\Korp_Teste_JoaoComini\bin\Debug\net10.0\Korp_Teste_JoaoComini.pdb
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.AssemblyInfoInputs.cache
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.AssemblyInfo.cs
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.csproj.CoreCompileInputs.cache
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.sourcelink.json
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.dll
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\refint\Korp_Teste_JoaoComini.dll
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.pdb
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\Korp_Teste_JoaoComini.genruntimeconfig.cache
+C:\Users\jujuc\Korp_Teste_JoaoComini\obj\Debug\net10.0\ref\Korp_Teste_JoaoComini.dll
