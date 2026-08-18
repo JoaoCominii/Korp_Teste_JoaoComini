@@ -6,161 +6,163 @@ namespace Korp_Teste_JoaoComini.Services
 {
     /// <summary>
     /// Serviço de Estoque - controla produtos e saldos (quantidade em estoque)
+    /// Utiliza "Código" como identificador único para CRUD completo
     /// </summary>
     public class EstoqueService
     {
-        // Dicionário: produto -> saldo/quantidade em estoque
-        // O "saldo" aqui representa a quantidade disponível de produtos
-        private readonly Dictionary<string, int> _saldos;
+        // Dicionário: Código -> (Descrição, Saldo/quantidade em estoque)
+        // O "Código" serve como chave única para identificação, apagamento e atualização
+        private readonly Dictionary<string, (string descricao, int saldo)> _produtos;
 
         /// <summary>
-        /// Construtor - inicializa o dicionário de saldos
+        /// Construtor - inicializa o dicionário de produtos
         /// </summary>
         public EstoqueService()
         {
-            _saldos = new Dictionary<string, int>();
+            _produtos = new Dictionary<string, (string, int)>();
         }
 
         /// <summary>
-        /// Cadastra um novo produto com saldo inicial (quantidade em estoque)
+        /// Cadastra um novo produto com código, descrição e saldo
+        /// Requisito: Campos obrigatórios são Código, Descrição e Saldo
         /// </summary>
-        /// <param name="produto">Nome/descrição do produto</param>
-        /// <param name="saldo">Quantidade inicial em estoque (saldo disponível)</param>
-        /// <exception cref="ArgumentException">Lançado se produto já existir</exception>
-        public void CadastrarProduto(string produto, int saldo)
+        /// <param name="codigo">Código identificador do produto (chave única)</param>
+        /// <param name="descricao">Descrição/nome do produto</param>
+        /// <param name="saldo">Quantidade em estoque</param>
+        /// <exception cref="ArgumentException">Lançado se código já existir</exception>
+        public void CadastrarProduto(string codigo, string descricao, int saldo)
         {
-            if (string.IsNullOrWhiteSpace(produto))
-                throw new ArgumentException("Nome do produto não pode ser vazio", nameof(produto));
+            if (string.IsNullOrWhiteSpace(codigo))
+                throw new ArgumentException("Código do produto não pode ser vazio", nameof(codigo));
 
-            if (_saldos.ContainsKey(produto))
-                throw new ArgumentException($"Produto '{produto}' já cadastrado", nameof(produto));
+            if (string.IsNullOrWhiteSpace(descricao))
+                throw new ArgumentException("Descrição do produto não pode ser vazia", nameof(descricao));
 
-            _saldos[produto] = saldo;
-            Console.WriteLine($"[Estoque] Produto '{produto}' cadastrado com saldo de {saldo} unidades em estoque");
+            if (_produtos.ContainsKey(codigo))
+                throw new ArgumentException($"Produto com código '{codigo}' já cadastrado", nameof(codigo));
+
+            _produtos[codigo] = (descricao, saldo);
+            Console.WriteLine($"[Estoque] Produto cadastrado - Código: {codigo}, Descrição: {descricao}, Saldo: {saldo} unidades");
         }
 
         /// <summary>
-        /// Obtém o saldo/quantidade de um produto
+        /// Lista todos os produtos cadastrados
         /// </summary>
-        /// <param name="produto">Nome do produto</param>
-        /// <return>Saldo/quantidade em estoque, ou -1 se não existir</return>
-        public int ObterSaldo(string produto)
+        /// <return>Lista de códigos dos produtos</return>
+        public List<string> ListarProdutos()
         {
-            if (_saldos.TryGetValue(produto, out int saldo))
-                return saldo;
-
-            Console.WriteLine($"[Estoque] Aviso: Saldo do produto '{produto}' não encontrado");
-            return -1;
+            return new List<string>(_produtos.Keys);
         }
 
         /// <summary>
-        /// Atualiza o saldo do produto
+        /// Obtém descrição e saldo de um produto pelo Código
         /// </summary>
-        /// <param name="produto">Nome do produto</param>
-        /// <param name="novoSaldo">Novo saldo</param>
-        /// <exception cref="KeyNotFoundException">Lançado se produto não existir</exception>
-        public void AtualizarSaldo(string produto, int novoSaldo)
+        /// <param name="codigo">Código do produto</param>
+        /// <return>Tuple (descrição, saldo) ou null se não existir</return>
+        public (string descricao, int saldo)? ObterProduto(string codigo)
         {
-            if (!_saldos.ContainsKey(produto))
-                throw new KeyNotFoundException($"Produto '{produto}' não encontrado no estoque");
+            if (_produtos.TryGetValue(codigo, out var produto))
+                return produto;
 
-            _saldos[produto] = novoSaldo;
-            Console.WriteLine($"[Estoque] Saldo do produto '{produto}' atualizado para {novoSaldo}");
+            Console.WriteLine($"[Estoque] Aviso: Produto com código '{codigo}' não encontrado");
+            return null;
+        }
+
+        /// <summary>
+        /// Atualiza a descrição e/ou saldo de um produto existente
+        /// </summary>
+        /// <param name="codigo">Código do produto a ser atualizado</param>
+        /// <param name="novaDescricao">Nova descrição (ou null para manter a atual)</param>
+        /// <param name="novoSaldo">Novo saldo (ou -1 para manter o atual)</param>
+        /// <exception cref="KeyNotFoundException">Lançado se código não existir</exception>
+        public void AtualizarProduto(string codigo, string? novaDescricao, int? novoSaldo)
+        {
+            if (!_produtos.ContainsKey(codigo))
+                throw new KeyNotFoundException($"Produto com código '{codigo}' não encontrado");
+
+            var atual = _produtos[codigo];
+            string descricao = string.IsNullOrEmpty(novaDescricao) ? atual.descricao : novaDescricao;
+            int saldo = novoSaldo.HasValue && novoSaldo.Value >= 0 ? novoSaldo.Value : atual.saldo;
+
+            _produtos[codigo] = (descricao, saldo);
+            Console.WriteLine($"[Estoque] Produto atualizado - Código: {codigo}, Nova Descrição: {descricao}, Novo Saldo: {saldo} unidades");
+        }
+
+        /// <summary>
+        /// Remove/Apaga um produto pelo Código
+        /// </summary>
+        /// <param name="codigo">Código do produto a ser removido</param>
+        /// <exception cref="KeyNotFoundException">Lançado se código não existir</exception>
+        public void RemoverProduto(string codigo)
+        {
+            if (!_produtos.Remove(codigo))
+                throw new KeyNotFoundException($"Produto com código '{codigo}' não encontrado para remoção");
+
+            Console.WriteLine($"[Estoque] Produto removido - Código: {codigo}");
         }
 
         /// <summary>
         /// Remove quantidade do estoque (venda/saída) - versao idempotente
-        /// Operação sobre o saldo/quantidade. Se tentar remover mais do que existe, 
-        /// reduz apenas ao disponível. Operações repetidas não causam estoque negativo.
+        /// Se tentar remover mais do que existe, reduz apenas ao disponível
+        /// Operações repetidas não causam estoque negativo (efeito colateral indesejado)
         /// </summary>
-        /// <param name="produto">Nome do produto</param>
-        /// <param name="quantidade">Quantidade a remover do saldo</param>
-        /// <return>Quantidade realmente removida do saldo</return>
-        public int RemoverDoEstoqueIdempotente(string produto, int quantidade)
+        /// <param name="codigo">Código do produto</param>
+        /// <param name="quantidade">Quantidade a remover</param>
+        /// <return>Quantidade realmente removida</return>
+        public int RemoverDoEstoqueIdempotente(string codigo, int quantidade)
         {
-            if (!_saldos.ContainsKey(produto))
+            if (!_produtos.ContainsKey(codigo))
             {
-                Console.WriteLine($"[Estoque] Aviso: Produto '{produto}' não existe - operação idempotente ignorada");
+                Console.WriteLine($"[Estoque] Aviso: Produto com código '{codigo}' não existe - operação idempotente ignorada");
                 return 0;
             }
 
-            int disponivel = _saldos[produto];
+            int disponivel = _produtos[codigo].saldo;
             int removida = Math.Min(quantidade, disponivel);
 
             if (removida < quantidade)
             {
-                Console.WriteLine($"[Estoque] Aviso: Estoque insuficiente para '{produto}'. " +
+                Console.WriteLine($"[Estoque] Aviso: Estoque insuficiente para código '{codigo}'. " +
                     $"Solicitado: {quantidade}, Disponível: {disponivel}, Removido: {removida}");
             }
 
-            _saldos[produto] -= removida;
-            Console.WriteLine($"[Estoque] Idempotente: Removido {removida} do saldo de '{produto}'. Restante: {_saldos[produto]}");
+            _produtos[codigo] = (_produtos[codigo].descricao, _produtos[codigo].saldo - removida);
+            Console.WriteLine($"[Estoque] Idempotente: Removido {removida} do código '{codigo}'. Restante: {_produtos[codigo].saldo}");
             return removida;
         }
 
         /// <summary>
-        /// Adiciona produto de forma idempotente - se já existir, soma ao saldo existente
-        /// Garante que chamadas múltiplas não perdem dados do saldo/quantidade
+        /// Adiciona produto de forma idempotente - se já existir, soma à descrição e quantidade existente
         /// </summary>
-        /// <param name="produto">Nome do produto</param>
-        /// <param name="quantidade">Quantidade a adicionar ao saldo</param>
-        public void CadastrarProdutoIdempotente(string produto, int quantidade)
+        /// <param name="codigo">Código do produto</param>
+        /// <param name="quantidade">Quantidade a adicionar</param>
+        public void CadastrarProdutoIdempotente(string codigo, string descricao, int quantidade)
         {
-            if (string.IsNullOrWhiteSpace(produto))
-                throw new ArgumentException("Nome do produto não pode ser vazio", nameof(produto));
+            if (string.IsNullOrWhiteSpace(codigo))
+                throw new ArgumentException("Código do produto não pode ser vazio", nameof(codigo));
 
-            if (_saldos.ContainsKey(produto))
+            if (string.IsNullOrWhiteSpace(descricao))
+                throw new ArgumentException("Descrição do produto não pode ser vazia", nameof(descricao));
+
+            if (_produtos.ContainsKey(codigo))
             {
-                _saldos[produto] += quantidade;
-                Console.WriteLine($"[Estoque] Idempotente:Produto '{produto}' já existia. Novo saldo: {_saldos[produto]}");
+                _produtos[codigo] = (_produtos[codigo].descricao + " + " + descricao, _produtos[codigo].saldo + quantidade);
+                Console.WriteLine($"[Estoque] Idempotente:Produto código '{codigo}' já existia. Nova descrição: {_produtos[codigo].descricao}, Nova quantidade: {_produtos[codigo].saldo}");
             }
             else
             {
-                _saldos[produto] = quantidade;
-                Console.WriteLine($"[Estoque] Idempotente:Produto '{produto}' cadastrado com saldo de {quantidade} unidades em estoque");
+                _produtos[codigo] = (descricao, quantidade);
+                Console.WriteLine($"[Estoque] Idempotente:Produto código '{codigo}' cadastrado com {quantidade} unidades");
             }
         }
 
         /// <summary>
-        /// Obtém lista com todos os nomes de produtos cadastrados
+        /// Obtém lista com todos os códigos de produtos cadastrados
         /// </summary>
-        /// <returns>Lista de nomes de produtos</returns>
-        public List<string> ObterProdutos()
+        /// <return>Lista de códigos</return>
+        public IReadOnlyList<string> ObterCodigos()
         {
-            return _saldos.Keys.ToList();
-        }
-
-        /// <summary>
-        /// Verifica se produto existe no estoque
-        /// </summary>
-        /// <param name="produto">Nome do produto</param>
-        /// <returns>true se existe, false caso contrário</returns>
-        public bool ProdutoExists(string produto)
-        {
-            return _saldos.ContainsKey(produto);
-        }
-
-        /// <summary>
-        /// Testa concorrência - simula múltiplas operações paralelas no estoque
-        /// Usa 'lock' para thread safety 
-        /// </summary>
-        /// <param name="operations">Operações a serem executadas concurrently</param>
-        /// <returns>Resultados de cada operação</returns>
-        public List<(string produto, int removido, bool sucesso)> TestarConcorrencia(List<(string produto, int quantidade)> operations)
-        {
-            var results = new List<(string produto, int removido, bool sucesso)>();
-            
-            // 'lock' garante exclusão mútua - apenas uma thread acessa o dicionário por vez
-            lock (_saldos)
-            {
-                foreach (var op in operations)
-                {
-                    int removida = RemoverDoEstoqueIdempotente(op.produto, op.quantidade);
-                    results.Add((op.produto, removida, removida > 0));
-                }
-            }
-            
-            return results;
+            return _produtos.Keys.ToList().AsReadOnly();
         }
     }
 }
