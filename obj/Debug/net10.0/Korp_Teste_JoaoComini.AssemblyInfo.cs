@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Korp_Teste_JoaoComini")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b3c996799fc83f1d2d99fae0acc2f57ae749f392")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dc3f7614d8aab33be0a056c3fc33b29a1490e753")]
 [assembly: System.Reflection.AssemblyProductAttribute("Korp_Teste_JoaoComini")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Korp_Teste_JoaoComini")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
