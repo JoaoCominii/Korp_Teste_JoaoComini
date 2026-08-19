@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProdutoService, ProdutoInterface } from '../../services/produto';
 import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'korp-produto-list',
@@ -23,13 +24,14 @@ export class ProdutoList implements OnInit, OnDestroy {
   novoProduto: ProdutoInterface = { codigo: '', descricao: '', saldo: 0 };
   saving: boolean = false;
 
-  constructor(private produtoService: ProdutoService) {}
+  constructor(private produtoService: ProdutoService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.subscription = this.produtoService.produtos$.subscribe({
       next: (produtos) => {
         this.produtos = produtos;
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
 
@@ -71,23 +73,23 @@ export class ProdutoList implements OnInit, OnDestroy {
     if (this.saving) return;
     this.saving = true;
 
-    if (this.editando) {
-      this.produtoService.atualizarProduto(this.codigoAtual, this.novoProduto).subscribe({
-        next: () => { this.saving = false; this.cancelar(); },
-        error: (err) => { this.saving = false; this.error = err.message; },
-      });
-    } else {
-      this.produtoService.cadastrarProduto(this.novoProduto).subscribe({
-        next: () => { this.saving = false; this.cancelar(); },
-        error: (err) => { this.saving = false; this.error = err.message; },
-      });
-    }
+    const req = this.editando
+      ? this.produtoService.atualizarProduto(this.codigoAtual, this.novoProduto)
+      : this.produtoService.cadastrarProduto(this.novoProduto);
+
+    req.pipe(
+      finalize(() => { this.saving = false; this.cdr.markForCheck(); })
+    ).subscribe({
+      next: () => { this.produtoService.loadProdutos(); this.cancelar(); this.cdr.markForCheck(); },
+      error: (err) => { this.error = err.message; this.cdr.markForCheck(); },
+    });
   }
 
   removerProduto(codigo: string): void {
     if (confirm('Tem certeza que deseja remover este produto?')) {
       this.produtoService.removerProduto(codigo).subscribe({
-        error: (err) => this.error = err.message,
+        next: () => { this.produtoService.loadProdutos(); this.cdr.markForCheck(); },
+        error: (err) => { this.error = err.message; this.cdr.markForCheck(); },
       });
     }
   }

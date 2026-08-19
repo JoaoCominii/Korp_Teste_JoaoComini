@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export interface ProdutoInterface {
   codigo: string;
@@ -50,33 +49,30 @@ export class ProdutoService {
 
   cadastrarProduto(produto: ProdutoInterface): Observable<ProdutoInterface> {
     return this.http.post<ProdutoInterface>(`${this.apiUrl}/produtos`, produto).pipe(
-      tap(() => this.loadProdutos()),
       catchError((error) => {
         const msg = error.error?.error || 'Erro ao cadastrar produto';
         this.errorSubject.next(msg);
-        throw new Error(msg);
+        return throwError(() => new Error(msg));
       })
     );
   }
 
   atualizarProduto(codigo: string, produto: Partial<ProdutoInterface>): Observable<any> {
     return this.http.put(`${this.apiUrl}/produtos/${codigo}`, produto).pipe(
-      tap(() => this.loadProdutos()),
       catchError((error) => {
         const msg = error.error?.error || 'Erro ao atualizar produto';
         this.errorSubject.next(msg);
-        throw new Error(msg);
+        return throwError(() => new Error(msg));
       })
     );
   }
 
   removerProduto(codigo: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/produtos/${codigo}`).pipe(
-      tap(() => this.loadProdutos()),
       catchError((error) => {
         const msg = error.error?.error || 'Erro ao remover produto';
         this.errorSubject.next(msg);
-        throw new Error(msg);
+        return throwError(() => new Error(msg));
       })
     );
   }
@@ -97,25 +93,20 @@ export class ProdutoService {
 
   cadastrarNotaFiscal(produtos: { codigo: string; quantidade: number }[]): Observable<any> {
     return this.http.post(`${this.apiUrl}/notasfiscais`, { produtos }).pipe(
-      tap(() => this.loadNotasFiscais()),
       catchError((error) => {
         const msg = error.error?.error || 'Erro ao criar nota fiscal';
         this.errorSubject.next(msg);
-        throw new Error(msg);
+        return throwError(() => new Error(msg));
       })
     );
   }
 
   imprimirNotaFiscal(numero: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/notasfiscais/${numero}/imprimir`, {}).pipe(
-      tap(() => {
-        this.loadNotasFiscais();
-        this.loadProdutos();
-      }),
       catchError((error) => {
         const msg = error.error?.error || 'Erro ao imprimir nota fiscal';
         this.errorSubject.next(msg);
-        throw new Error(msg);
+        return throwError(() => new Error(msg));
       })
     );
   }

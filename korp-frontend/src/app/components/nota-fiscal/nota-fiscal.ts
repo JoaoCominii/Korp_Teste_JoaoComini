@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProdutoService, NotaFiscalInterface, ProdutoInterface } from '../../services/produto';
 import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'korp-nota-fiscal',
@@ -24,13 +25,14 @@ export class NotaFiscal implements OnInit, OnDestroy {
   quantidade: number = 1;
   saving: boolean = false;
 
-  constructor(private produtoService: ProdutoService) {}
+  constructor(private produtoService: ProdutoService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.subscription = this.produtoService.notasFiscais$.subscribe({
       next: (notas) => {
         this.notasFiscais = notas;
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
 
@@ -38,7 +40,7 @@ export class NotaFiscal implements OnInit, OnDestroy {
     this.produtoService.loadProdutos();
 
     this.produtoService.produtos$.subscribe({
-      next: (produtos) => this.produtos = produtos,
+      next: (produtos) => { this.produtos = produtos; this.cdr.markForCheck(); },
     });
   }
 
@@ -95,16 +97,19 @@ export class NotaFiscal implements OnInit, OnDestroy {
     if (this.saving) return;
     this.saving = true;
 
-    this.produtoService.cadastrarNotaFiscal(this.produtosNota).subscribe({
-      next: () => { this.saving = false; this.cancelar(); },
-      error: (err) => { this.saving = false; this.error = err.message; },
+    this.produtoService.cadastrarNotaFiscal(this.produtosNota).pipe(
+      finalize(() => { this.saving = false; this.cdr.markForCheck(); })
+    ).subscribe({
+      next: () => { this.produtoService.loadNotasFiscais(); this.cancelar(); this.cdr.markForCheck(); },
+      error: (err) => { this.error = err.message; this.cdr.markForCheck(); },
     });
   }
 
   imprimirNotaFiscal(numero: string): void {
     if (confirm('Deseja imprimir esta nota fiscal? O status será alterado para "Fechada".')) {
       this.produtoService.imprimirNotaFiscal(numero).subscribe({
-        error: (err) => this.error = err.message,
+        next: () => { this.produtoService.loadNotasFiscais(); this.produtoService.loadProdutos(); this.cdr.markForCheck(); },
+        error: (err) => { this.error = err.message; this.cdr.markForCheck(); },
       });
     }
   }

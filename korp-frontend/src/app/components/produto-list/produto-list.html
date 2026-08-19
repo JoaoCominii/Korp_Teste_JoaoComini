@@ -106,7 +106,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" type="button" (click)="cancelar()">Cancelar</button>
-      <button class="btn-primary" type="button" (click)="$event.stopPropagation(); salvar()" [disabled]="saving">
+      <button class="btn-primary" type="button" (click)="salvar()" [disabled]="saving">
         {{ saving ? 'Salvando...' : (editando ? 'Atualizar' : 'Cadastrar') }}
       </button>
     </div>
