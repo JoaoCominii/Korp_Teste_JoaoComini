@@ -22,12 +22,12 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             // Configurar NotaFiscal com Numero como chave primária
             modelBuilder.Entity<NotaFiscal>().HasKey(n => n.Numero);
 
-            // Converter List<tuple> para JSON para evitar aviso de entidade acidental
+            // Converter List<ProdutoNota> para JSON
             modelBuilder.Entity<NotaFiscal>()
                 .Property(n => n.Produtos)
                 .HasConversion(
                     v => System.Text.Json.JsonSerializer.Serialize(v),
-                    v => System.Text.Json.JsonSerializer.Deserialize<List<(string produto, int quantidade)>>(v)!);
+                    v => System.Text.Json.JsonSerializer.Deserialize<List<ProdutoNota>>(v) ?? new());
         }
     }
     public class Produto
@@ -45,8 +45,14 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
         public string Status { get; set; } = "Aberta";
 
-        public List<(string produto, int quantidade)> Produtos { get; set; } = new();
+        public List<ProdutoNota> Produtos { get; set; } = new();
 
         public int SaldoTotal { get; set; }
+    }
+
+    public class ProdutoNota
+    {
+        public string Codigo { get; set; } = "";
+        public int Quantidade { get; set; }
     }
 }

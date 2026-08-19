@@ -14,7 +14,6 @@ namespace Korp_Teste_JoaoComini.Controllers
         public NotasFiscaisController(FaturamentoService faturamentoService, EstoqueService estoqueService)
         {
             _faturamentoService = faturamentoService;
-            _faturamentoService.EstoqueService = estoqueService;
             _estoqueService = estoqueService;
         }
 
@@ -31,8 +30,8 @@ namespace Korp_Teste_JoaoComini.Controllers
                     Status = n.Status,
                     Produtos = n.Produtos.Select(p => new ProdutoNotaDto
                     {
-                        Codigo = p.produto,
-                        Quantidade = p.quantidade
+                        Codigo = p.Codigo,
+                        Quantidade = p.Quantidade
                     }).ToList(),
                     SaldoTotal = n.SaldoTotal
                 }).ToList();
@@ -63,8 +62,8 @@ namespace Korp_Teste_JoaoComini.Controllers
                     Status = nota.Status,
                     Produtos = nota.Produtos.Select(p => new ProdutoNotaDto
                     {
-                        Codigo = p.produto,
-                        Quantidade = p.quantidade
+                        Codigo = p.Codigo,
+                        Quantidade = p.Quantidade
                     }).ToList(),
                     SaldoTotal = nota.SaldoTotal
                 });
@@ -84,13 +83,13 @@ namespace Korp_Teste_JoaoComini.Controllers
                 if (dto.Produtos == null || dto.Produtos.Count == 0)
                     return BadRequest(new { error = "Nota fiscal deve conter pelo menos um produto" });
 
-                var produtos = dto.Produtos.Select(p => (p.Codigo, p.Quantidade)).ToList();
+                var produtos = dto.Produtos.Select(p => new ProdutoNota { Codigo = p.Codigo, Quantidade = p.Quantidade }).ToList();
 
                 // Validate products exist
-                foreach (var (codigo, _) in produtos)
+                foreach (var pn in produtos)
                 {
-                    if (!_estoqueService.ObterProduto(codigo).HasValue)
-                        return BadRequest(new { error = $"Produto com código '{codigo}' não encontrado" });
+                    if (!_estoqueService.ObterProduto(pn.Codigo).HasValue)
+                        return BadRequest(new { error = $"Produto com código '{pn.Codigo}' não encontrado" });
                 }
 
                 _faturamentoService.CadastrarNotafiscal(produtos);
@@ -118,7 +117,7 @@ namespace Korp_Teste_JoaoComini.Controllers
                 if (nota.Status != "Aberta")
                     return BadRequest(new { error = "Apenas notas com status 'Aberta' podem ser impressas" });
 
-                bool resultado = _faturamentoService.ImprimirNotafiscal(nota.Status, _estoqueService);
+                bool resultado = _faturamentoService.ImprimirNotafiscal(numero, _estoqueService);
 
                 if (resultado)
                 {

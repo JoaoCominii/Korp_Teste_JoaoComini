@@ -18,7 +18,6 @@ export class NotaFiscal implements OnInit, OnDestroy {
   loading: boolean = true;
   error: string | null = null;
 
-  // Form
   mostrarFormulario: boolean = false;
   produtosNota: { codigo: string; quantidade: number }[] = [];
   produtoSelecionado: string = '';
@@ -27,42 +26,19 @@ export class NotaFiscal implements OnInit, OnDestroy {
   constructor(private produtoService: ProdutoService) {}
 
   ngOnInit(): void {
-    this.subscription = new Subscription();
-
-    this.subscription.add(
-      this.produtoService.notasFiscais$.subscribe({
-        next: (notas) => {
-          this.notasFiscais = notas;
-          this.loading = false;
-        },
-        error: () => {
-          this.loading = false;
-        }
-      })
-    );
-
-    this.subscription.add(
-      this.produtoService.produtos$.subscribe({
-        next: (produtos) => {
-          this.produtos = produtos;
-        }
-      })
-    );
-
-    this.subscription.add(
-      this.produtoService.loading$.subscribe({
-        next: (loading) => this.loading = loading
-      })
-    );
-
-    this.subscription.add(
-      this.produtoService.error$.subscribe({
-        next: (error) => this.error = error
-      })
-    );
+    this.subscription = this.produtoService.notasFiscais$.subscribe({
+      next: (notas) => {
+        this.notasFiscais = notas;
+        this.loading = false;
+      },
+    });
 
     this.produtoService.loadNotasFiscais();
     this.produtoService.loadProdutos();
+
+    this.produtoService.produtos$.subscribe({
+      next: (produtos) => this.produtos = produtos,
+    });
   }
 
   ngOnDestroy(): void {
@@ -74,11 +50,13 @@ export class NotaFiscal implements OnInit, OnDestroy {
     this.produtosNota = [];
     this.produtoSelecionado = '';
     this.quantidade = 1;
+    this.produtoService.loadProdutos();
   }
 
   cancelar(): void {
     this.mostrarFormulario = false;
     this.produtosNota = [];
+    this.error = null;
     this.produtoService.clearError();
   }
 
@@ -94,7 +72,7 @@ export class NotaFiscal implements OnInit, OnDestroy {
     } else {
       this.produtosNota.push({
         codigo: this.produtoSelecionado,
-        quantidade: this.quantidade
+        quantidade: this.quantidade,
       });
     }
 
@@ -113,21 +91,15 @@ export class NotaFiscal implements OnInit, OnDestroy {
     }
 
     this.produtoService.cadastrarNotaFiscal(this.produtosNota).subscribe({
-      next: () => {
-        this.cancelar();
-      },
-      error: (err) => {
-        this.error = err.message;
-      }
+      next: () => this.cancelar(),
+      error: (err) => this.error = err.message,
     });
   }
 
   imprimirNotaFiscal(numero: string): void {
     if (confirm('Deseja imprimir esta nota fiscal? O status será alterado para "Fechada".')) {
       this.produtoService.imprimirNotaFiscal(numero).subscribe({
-        error: (err) => {
-          this.error = err.message;
-        }
+        error: (err) => this.error = err.message,
       });
     }
   }

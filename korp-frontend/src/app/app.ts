@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 })
 export class App {
   protected readonly title = 'korp-frontend';
-  usuario: string = 'João Silva';
+  usuario: string = 'João Comini';
   versao: string = '1.0.0';
   menuAberto: boolean = true;
 

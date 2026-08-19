@@ -17,7 +17,6 @@ export class ProdutoList implements OnInit, OnDestroy {
   loading: boolean = true;
   error: string | null = null;
 
-  // Form
   mostrarFormulario: boolean = false;
   editando: boolean = false;
   codigoAtual: string = '';
@@ -26,32 +25,12 @@ export class ProdutoList implements OnInit, OnDestroy {
   constructor(private produtoService: ProdutoService) {}
 
   ngOnInit(): void {
-    this.subscription = new Subscription();
-
-    this.subscription.add(
-      this.produtoService.produtos$.subscribe({
-        next: (produtos) => {
-          this.produtos = produtos;
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error('Erro ao carregar produtos:', err);
-          this.loading = false;
-        },
-      })
-    );
-
-    this.subscription.add(
-      this.produtoService.loading$.subscribe({
-        next: (loading) => this.loading = loading
-      })
-    );
-
-    this.subscription.add(
-      this.produtoService.error$.subscribe({
-        next: (error) => this.error = error
-      })
-    );
+    this.subscription = this.produtoService.produtos$.subscribe({
+      next: (produtos) => {
+        this.produtos = produtos;
+        this.loading = false;
+      },
+    });
 
     this.produtoService.loadProdutos();
   }
@@ -77,6 +56,7 @@ export class ProdutoList implements OnInit, OnDestroy {
     this.mostrarFormulario = false;
     this.editando = false;
     this.novoProduto = { codigo: '', descricao: '', saldo: 0 };
+    this.error = null;
     this.produtoService.clearError();
   }
 
@@ -88,21 +68,13 @@ export class ProdutoList implements OnInit, OnDestroy {
 
     if (this.editando) {
       this.produtoService.atualizarProduto(this.codigoAtual, this.novoProduto).subscribe({
-        next: () => {
-          this.cancelar();
-        },
-        error: (err) => {
-          this.error = err.message;
-        }
+        next: () => this.cancelar(),
+        error: (err) => this.error = err.message,
       });
     } else {
       this.produtoService.cadastrarProduto(this.novoProduto).subscribe({
-        next: () => {
-          this.cancelar();
-        },
-        error: (err) => {
-          this.error = err.message;
-        }
+        next: () => this.cancelar(),
+        error: (err) => this.error = err.message,
       });
     }
   }
@@ -110,9 +82,7 @@ export class ProdutoList implements OnInit, OnDestroy {
   removerProduto(codigo: string): void {
     if (confirm('Tem certeza que deseja remover este produto?')) {
       this.produtoService.removerProduto(codigo).subscribe({
-        error: (err) => {
-          this.error = err.message;
-        }
+        error: (err) => this.error = err.message,
       });
     }
   }

@@ -7,17 +7,13 @@ namespace Korp_Teste_JoaoComini.Services
     {
         private readonly BancoContexto _contexto;
 
-        public EstoqueService()
+        public EstoqueService(BancoContexto contexto)
         {
-            _contexto = new BancoContexto();
-            // Garante que o banco e as tabelas existem ao criar o serviço
-            _contexto.Database.EnsureCreated();
+            _contexto = contexto;
         }
 
-        // Cadastra produto salvando no banco
         public void CadastrarProduto(string codigo, string descricao, int saldo)
         {
-            // Verifica se já existe
             if (_contexto.Produtos.Any(p => p.Codigo == codigo))
                 throw new ArgumentException($"Produto com código '{codigo}' já cadastrado");
 
@@ -27,25 +23,19 @@ namespace Korp_Teste_JoaoComini.Services
             Console.WriteLine($"[Estoque] Produto cadastrado - Código: {codigo}, Descrição: {descricao}, Saldo: {saldo}");
         }
 
-        // Listar todos os códigos
         public List<string> ObterCodigos()
         {
             return _contexto.Produtos.Select(p => p.Codigo).ToList();
         }
 
-        // Obter produto por Código
         public (string descricao, int saldo)? ObterProduto(string codigo)
         {
             var prod = _contexto.Produtos.FirstOrDefault(p => p.Codigo == codigo);
             if (prod == null)
-            {
-                Console.WriteLine($"[Estoque] Aviso: Produto com código '{codigo}' não encontrado");
                 return null;
-            }
             return (prod.Descricao, prod.Saldo);
         }
 
-        // Atualizar produto por Código
         public void AtualizarProduto(string codigo, string? novaDescricao, int? novoSaldo)
         {
             var prod = _contexto.Produtos.FirstOrDefault(p => p.Codigo == codigo);
@@ -62,7 +52,6 @@ namespace Korp_Teste_JoaoComini.Services
             Console.WriteLine($"[Estoque] Produto atualizado - Código: {codigo}");
         }
 
-        // Remover produto por Código
         public void RemoverProduto(string codigo)
         {
             var prod = _contexto.Produtos.FirstOrDefault(p => p.Codigo == codigo);
@@ -74,7 +63,6 @@ namespace Korp_Teste_JoaoComini.Services
             Console.WriteLine($"[Estoque] Produto removido - Código: {codigo}");
         }
 
-        // Remover do estoque (idempotente - agora salva no banco)
         public int RemoverDoEstoqueIdempotente(string codigo, int quantidade)
         {
             if (!_contexto.Produtos.Any(p => p.Codigo == codigo))

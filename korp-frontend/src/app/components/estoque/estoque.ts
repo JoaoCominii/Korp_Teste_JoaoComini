@@ -23,9 +23,6 @@ export class Estoque implements OnInit, OnDestroy {
         this.produtos = produtos;
         this.loading = false;
       },
-      error: () => {
-        this.loading = false;
-      }
     });
 
     this.produtoService.loadProdutos();

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 export interface ProdutoInterface {
   codigo: string;
@@ -21,14 +22,12 @@ export interface NotaFiscalInterface {
 })
 export class ProdutoService {
   private readonly apiUrl = 'http://localhost:5000/api';
+
   private produtoSubject = new BehaviorSubject<ProdutoInterface[]>([]);
   public produtos$ = this.produtoSubject.asObservable();
 
   private notaFiscalSubject = new BehaviorSubject<NotaFiscalInterface[]>([]);
   public notasFiscais$ = this.notaFiscalSubject.asObservable();
-
-  private loadingSubject = new BehaviorSubject<boolean>(false);
-  public loading$ = this.loadingSubject.asObservable();
 
   private errorSubject = new BehaviorSubject<string | null>(null);
   public error$ = this.errorSubject.asObservable();
@@ -37,65 +36,73 @@ export class ProdutoService {
 
   // Produtos
   loadProdutos(): void {
-    this.loadingSubject.next(true);
     this.errorSubject.next(null);
-
     this.http.get<ProdutoInterface[]>(`${this.apiUrl}/produtos`).pipe(
-      catchError(this.handleError.bind(this))
-    ).subscribe({
-      next: (produtos) => {
-        this.produtoSubject.next(produtos);
-        this.loadingSubject.next(false);
-      },
-      error: () => {
-        this.loadingSubject.next(false);
-      }
+      catchError((error) => {
+        console.error('Erro ao carregar produtos:', error);
+        this.errorSubject.next('Erro ao carregar produtos');
+        return of([]);
+      })
+    ).subscribe((produtos) => {
+      this.produtoSubject.next(produtos);
     });
   }
 
   cadastrarProduto(produto: ProdutoInterface): Observable<ProdutoInterface> {
     return this.http.post<ProdutoInterface>(`${this.apiUrl}/produtos`, produto).pipe(
       tap(() => this.loadProdutos()),
-      catchError(this.handleError.bind(this))
+      catchError((error) => {
+        const msg = error.error?.error || 'Erro ao cadastrar produto';
+        this.errorSubject.next(msg);
+        throw new Error(msg);
+      })
     );
   }
 
   atualizarProduto(codigo: string, produto: Partial<ProdutoInterface>): Observable<any> {
     return this.http.put(`${this.apiUrl}/produtos/${codigo}`, produto).pipe(
       tap(() => this.loadProdutos()),
-      catchError(this.handleError.bind(this))
+      catchError((error) => {
+        const msg = error.error?.error || 'Erro ao atualizar produto';
+        this.errorSubject.next(msg);
+        throw new Error(msg);
+      })
     );
   }
 
   removerProduto(codigo: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/produtos/${codigo}`).pipe(
       tap(() => this.loadProdutos()),
-      catchError(this.handleError.bind(this))
+      catchError((error) => {
+        const msg = error.error?.error || 'Erro ao remover produto';
+        this.errorSubject.next(msg);
+        throw new Error(msg);
+      })
     );
   }
 
   // Notas Fiscais
   loadNotasFiscais(): void {
-    this.loadingSubject.next(true);
     this.errorSubject.next(null);
-
     this.http.get<NotaFiscalInterface[]>(`${this.apiUrl}/notasfiscais`).pipe(
-      catchError(this.handleError.bind(this))
-    ).subscribe({
-      next: (notas) => {
-        this.notaFiscalSubject.next(notas);
-        this.loadingSubject.next(false);
-      },
-      error: () => {
-        this.loadingSubject.next(false);
-      }
+      catchError((error) => {
+        console.error('Erro ao carregar notas:', error);
+        this.errorSubject.next('Erro ao carregar notas fiscais');
+        return of([]);
+      })
+    ).subscribe((notas) => {
+      this.notaFiscalSubject.next(notas);
     });
   }
 
   cadastrarNotaFiscal(produtos: { codigo: string; quantidade: number }[]): Observable<any> {
     return this.http.post(`${this.apiUrl}/notasfiscais`, { produtos }).pipe(
       tap(() => this.loadNotasFiscais()),
-      catchError(this.handleError.bind(this))
+      catchError((error) => {
+        const msg = error.error?.error || 'Erro ao criar nota fiscal';
+        this.errorSubject.next(msg);
+        throw new Error(msg);
+      })
     );
   }
 
@@ -105,25 +112,12 @@ export class ProdutoService {
         this.loadNotasFiscais();
         this.loadProdutos();
       }),
-      catchError(this.handleError.bind(this))
+      catchError((error) => {
+        const msg = error.error?.error || 'Erro ao imprimir nota fiscal';
+        this.errorSubject.next(msg);
+        throw new Error(msg);
+      })
     );
-  }
-
-  // Error handling
-  private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Ocorreu um erro desconhecido';
-
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = error.error.message;
-    } else if (error.error?.error) {
-      errorMessage = error.error.error;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    this.errorSubject.next(errorMessage);
-    console.error('Erro:', errorMessage);
-    return throwError(() => new Error(errorMessage));
   }
 
   clearError(): void {
