@@ -21,6 +21,7 @@ export class ProdutoList implements OnInit, OnDestroy {
   editando: boolean = false;
   codigoAtual: string = '';
   novoProduto: ProdutoInterface = { codigo: '', descricao: '', saldo: 0 };
+  saving: boolean = false;
 
   constructor(private produtoService: ProdutoService) {}
 
@@ -42,6 +43,7 @@ export class ProdutoList implements OnInit, OnDestroy {
   abrirFormulario(): void {
     this.mostrarFormulario = true;
     this.editando = false;
+    this.error = null;
     this.novoProduto = { codigo: '', descricao: '', saldo: 0 };
   }
 
@@ -66,15 +68,18 @@ export class ProdutoList implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.saving) return;
+    this.saving = true;
+
     if (this.editando) {
       this.produtoService.atualizarProduto(this.codigoAtual, this.novoProduto).subscribe({
-        next: () => this.cancelar(),
-        error: (err) => this.error = err.message,
+        next: () => { this.saving = false; this.cancelar(); },
+        error: (err) => { this.saving = false; this.error = err.message; },
       });
     } else {
       this.produtoService.cadastrarProduto(this.novoProduto).subscribe({
-        next: () => this.cancelar(),
-        error: (err) => this.error = err.message,
+        next: () => { this.saving = false; this.cancelar(); },
+        error: (err) => { this.saving = false; this.error = err.message; },
       });
     }
   }

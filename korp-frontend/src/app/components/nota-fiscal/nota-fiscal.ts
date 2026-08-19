@@ -22,6 +22,7 @@ export class NotaFiscal implements OnInit, OnDestroy {
   produtosNota: { codigo: string; quantidade: number }[] = [];
   produtoSelecionado: string = '';
   quantidade: number = 1;
+  saving: boolean = false;
 
   constructor(private produtoService: ProdutoService) {}
 
@@ -50,6 +51,7 @@ export class NotaFiscal implements OnInit, OnDestroy {
     this.produtosNota = [];
     this.produtoSelecionado = '';
     this.quantidade = 1;
+    this.error = null;
     this.produtoService.loadProdutos();
   }
 
@@ -90,9 +92,12 @@ export class NotaFiscal implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.saving) return;
+    this.saving = true;
+
     this.produtoService.cadastrarNotaFiscal(this.produtosNota).subscribe({
-      next: () => this.cancelar(),
-      error: (err) => this.error = err.message,
+      next: () => { this.saving = false; this.cancelar(); },
+      error: (err) => { this.saving = false; this.error = err.message; },
     });
   }
 
