@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1 class="page-title">Produtos</h1>
+  <button class="btn-primary" (click)="abrirFormulario()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </svg>
+    Novo Produto
+  </button>
+</div>
+
+<!-- Error Alert -->
+<div class="alert alert-error" *ngIf="error">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+  </svg>
+  <span>{{ error }}</span>
+  <button class="btn-close" (click)="fecharErro()">×</button>
+</div>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <span>Carregando produtos...</span>
+</div>
+
+<!-- Products Grid -->
+<div class="products-grid" *ngIf="!loading && produtos.length > 0">
+  <div class="product-card" *ngFor="let produto of produtos">
+    <div class="product-header">
+      <span class="product-code">{{ produto.codigo }}</span>
+      <div class="product-actions">
+        <button class="btn-icon" (click)="editarProduto(produto)" title="Editar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+          </svg>
+        </button>
+        <button class="btn-icon btn-danger" (click)="removerProduto(produto.codigo)" title="Remover">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="product-info">
+      <span class="product-name">{{ produto.descricao }}</span>
+      <div class="product-saldo">
+        <span class="saldo-quantidade">{{ produto.saldo }}</span>
+        <span class="saldo-unidade">un</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!loading && produtos.length === 0">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H4V4h16v16zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8zm-2 4h4v2H8z"/>
+  </svg>
+  <h3>Nenhum produto cadastrado</h3>
+  <p>Clique em "Novo Produto" para adicionar o primeiro produto.</p>
+</div>
+
+<!-- Modal Form -->
+<div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelar()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editando ? 'Editar Produto' : 'Novo Produto' }}</h2>
+      <button class="btn-close" (click)="cancelar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="codigo">Código *</label>
+        <input
+          type="text"
+          id="codigo"
+          [(ngModel)]="novoProduto.codigo"
+          [disabled]="editando"
+          placeholder="Ex: 001"
+          class="form-control"
+        />
+      </div>
+      <div class="form-group">
+        <label for="descricao">Descrição *</label>
+        <input
+          type="text"
+          id="descricao"
+          [(ngModel)]="novoProduto.descricao"
+          placeholder="Nome do produto"
+          class="form-control"
+        />
+      </div>
+      <div class="form-group">
+        <label for="saldo">Saldo em Estoque</label>
+        <input
+          type="number"
+          id="saldo"
+          [(ngModel)]="novoProduto.saldo"
+          min="0"
+          class="form-control"
+        />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cancelar()">Cancelar</button>
+      <button class="btn-primary" (click)="salvar()">
+        {{ editando ? 'Atualizar' : 'Cadastrar' }}
+      </button>
+    </div>
+  </div>
+</div>

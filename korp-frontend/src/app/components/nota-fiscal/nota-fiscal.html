@@ -1,0 +1,157 @@
+<div class="page-header">
+  <h1 class="page-title">Notas Fiscais</h1>
+  <button class="btn-primary" (click)="abrirFormulario()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </svg>
+    Nova Nota Fiscal
+  </button>
+</div>
+
+<!-- Error Alert -->
+<div class="alert alert-error" *ngIf="error">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+  </svg>
+  <span>{{ error }}</span>
+  <button class="btn-close" (click)="fecharErro()">×</button>
+</div>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <span>Carregando notas fiscais...</span>
+</div>
+
+<!-- Notas Fiscais List -->
+<div class="notas-list" *ngIf="!loading && notasFiscais.length > 0">
+  <div class="nota-card" *ngFor="let nota of notasFiscais">
+    <div class="nota-header">
+      <div class="nota-info">
+        <span class="nota-numero">{{ nota.numero }}</span>
+        <span class="nota-status" [class.aberta]="nota.status === 'Aberta'" [class.fechada]="nota.status === 'Fechada'">
+          {{ nota.status }}
+        </span>
+      </div>
+      <button
+        class="btn-imprimir"
+        *ngIf="nota.status === 'Aberta'"
+        (click)="imprimirNotaFiscal(nota.numero)"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+        </svg>
+        Imprimir
+      </button>
+      <span class="nota-fechada-badge" *ngIf="nota.status === 'Fechada'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        Finalizada
+      </span>
+    </div>
+    <div class="nota-body">
+      <div class="nota-produtos">
+        <span class="label">Produtos:</span>
+        <div class="produtos-tags">
+          <span class="produto-tag" *ngFor="let prod of nota.produtos">
+            {{ getProdutoDescricao(prod.codigo) }} ({{ prod.quantidade }})
+          </span>
+        </div>
+      </div>
+      <div class="nota-total">
+        <span class="label">Total:</span>
+        <span class="valor">{{ nota.saldoTotal }} itens</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!loading && notasFiscais.length === 0">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+  </svg>
+  <h3>Nenhuma nota fiscal cadastrada</h3>
+  <p>Clique em "Nova Nota Fiscal" para criar a primeira nota.</p>
+</div>
+
+<!-- Modal Form -->
+<div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelar()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Nova Nota Fiscal</h2>
+      <button class="btn-close" (click)="cancelar()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label for="produto">Produto</label>
+          <select id="produto" [(ngModel)]="produtoSelecionado" class="form-control">
+            <option value="">Selecione um produto</option>
+            <option *ngFor="let p of produtos" [value]="p.codigo">
+              {{ p.codigo }} - {{ p.descricao }} ({{ p.saldo }} disponível)
+            </option>
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label for="quantidade">Quantidade</label>
+          <input
+            type="number"
+            id="quantidade"
+            [(ngModel)]="quantidade"
+            min="1"
+            class="form-control"
+          />
+        </div>
+        <div class="form-group flex-0">
+          <label>&nbsp;</label>
+          <button class="btn-add" (click)="adicionarProduto()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Produtos Adicionados -->
+      <div class="produtos-adicionados" *ngIf="produtosNota.length > 0">
+        <h4>Produtos na Nota</h4>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of produtosNota">
+              <td>{{ item.codigo }}</td>
+              <td>{{ getProdutoDescricao(item.codigo) }}</td>
+              <td>{{ item.quantidade }}</td>
+              <td>
+                <button class="btn-icon btn-danger" (click)="removerProdutoNota(item.codigo)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cancelar()">Cancelar</button>
+      <button class="btn-primary" (click)="criarNotaFiscal()" [disabled]="produtosNota.length === 0">
+        Criar Nota Fiscal
+      </button>
+    </div>
+  </div>
+</div>

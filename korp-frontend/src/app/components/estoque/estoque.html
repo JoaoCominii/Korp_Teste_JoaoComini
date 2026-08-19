@@ -1,0 +1,96 @@
+<div class="page-header">
+  <h1 class="page-title">Estoque</h1>
+</div>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading">
+  <div class="spinner"></div>
+  <span>Carregando estoque...</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid" *ngIf="!loading">
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H4V4h16v16zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8zm-2 4h4v2H8z"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ produtos.length }}</span>
+      <span class="stat-label">Total de Produtos</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon warning">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ produtosEstoqueBaixo.length }}</span>
+      <span class="stat-label">Estoque Baixo (≤10)</span>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon success">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+      </svg>
+    </div>
+    <div class="stat-info">
+      <span class="stat-value">{{ totalEstoque }}</span>
+      <span class="stat-label">Itens em Estoque</span>
+    </div>
+  </div>
+</div>
+
+<!-- Estoque Baixo Alert -->
+<div class="alert alert-warning" *ngIf="!loading && produtosEstoqueBaixo.length > 0">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+  </svg>
+  <span>Atenção: {{ produtosEstoqueBaixo.length }} produto(s) com estoque baixo (10 ou menos itens)</span>
+</div>
+
+<!-- Estoque Table -->
+<div class="estoque-table" *ngIf="!loading && produtos.length > 0">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Produto</th>
+        <th class="text-right">Saldo</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let produto of produtos" [class.estoque-baixo]="produto.saldo <= 10">
+        <td>
+          <span class="codigo-badge">{{ produto.codigo }}</span>
+        </td>
+        <td>{{ produto.descricao }}</td>
+        <td class="text-right">
+          <span class="saldo-value">{{ produto.saldo }}</span>
+          <span class="saldo-unit">un</span>
+        </td>
+        <td>
+          <span class="status-badge" [class.ok]="produto.saldo > 10" [class.baixo]="produto.saldo <= 10">
+            {{ produto.saldo > 10 ? 'Normal' : 'Baixo' }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!loading && produtos.length === 0">
+  <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H4V4h16v16zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8zm-2 4h4v2H8z"/>
+  </svg>
+  <h3>Nenhum produto cadastrado</h3>
+  <p>Cadastre produtos na seção "Produtos" para visualizar o estoque.</p>
+</div>

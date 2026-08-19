@@ -1,0 +1,245 @@
+/* App Layout */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: linear-gradient(180deg, var(--cor-sidebar) 0%, #0d3b12 100%);
+  color: var(--cor-texto-claro);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+
+  .sidebar-brand {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--cor-primaria);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .brand-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 1rem 0.5rem;
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      border-radius: 8px;
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+
+      svg {
+        flex-shrink: 0;
+        opacity: 0.8;
+      }
+
+      &:hover {
+        background: rgba(255,255,255,0.1);
+        color: var(--cor-texto-claro);
+        svg { opacity: 1; }
+      }
+
+      &.active {
+        background: rgba(255,255,255,0.15);
+        color: var(--cor-texto-claro);
+        font-weight: 500;
+        svg { opacity: 1; }
+      }
+    }
+  }
+
+  .sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+  }
+
+  &.aberto {
+    width: 250px;
+  }
+}
+
+.sidebar-fechado .sidebar {
+  width: 70px;
+
+  .sidebar-brand {
+    justify-content: center;
+    padding: 1.5rem 0.5rem;
+
+    .brand-text { display: none; }
+  }
+
+  .sidebar-nav .sidebar-link {
+    justify-content: center;
+    padding: 0.875rem;
+
+    span { display: none; }
+  }
+
+  .sidebar-footer { display: none; }
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar-fechado .main-content {
+  margin-left: 70px;
+}
+
+/* Topbar */
+.topbar {
+  background: var(--cor-topbar);
+  color: var(--cor-texto-claro);
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: var(--cor-texto-claro);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba(255,255,255,0.1);
+      }
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .usuario {
+      color: rgba(255,255,255,0.9);
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+    }
+  }
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  padding: 2rem;
+  background: var(--cor-fundo);
+}
+
+/* Footer */
+.footer {
+  background: white;
+  color: var(--cor-texto);
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--cor-bordas);
+
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+
+    span:first-child {
+      font-weight: 500;
+      color: var(--cor-primaria);
+    }
+
+    span:last-child {
+      color: #666;
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px;
+
+    .sidebar-brand {
+      justify-content: center;
+      padding: 1.5rem 0.5rem;
+
+      .brand-text { display: none; }
+    }
+
+    .sidebar-nav .sidebar-link {
+      justify-content: center;
+      padding: 0.875rem;
+
+      span { display: none; }
+    }
+
+    .sidebar-footer { display: none; }
+  }
+
+  .main-content {
+    margin-left: 70px;
+  }
+
+  .topbar .topbar-right .usuario {
+    display: none;
+  }
+}
